@@ -1,63 +1,103 @@
-$(document).ready(function(){
+$(document).ready(function() {
 
-//create variables to hold information
+    // Initialize Firebase
+    var config = {
+        apiKey: "AIzaSyCcC4KQRs6BdV8j-a60zClyPeklA-ncm3w",
+        authDomain: "trainscheduler-cbc97.firebaseapp.com",
+        databaseURL: "https://trainscheduler-cbc97.firebaseio.com",
+        storageBucket: "trainscheduler-cbc97.appspot.com",
+        messagingSenderId: "975921946148"
+    };
+    firebase.initializeApp(config);
+
+    //create a variable to reference the database
+
+    var dataRef = firebase.database();
+
+    //on button click, store data
+
+    $("#submit-btn").on("click", function(event) {
+        //don't refresh the page
+        event.preventDefault();
+
+        //code in logic for storing and retrieving the most recent information.
+
+        var name = $("#name").val().trim();
+        var destination = $("#destination").val().trim();
+        var firstTrain = $("#firstTrain").val().trim();
+        var frequency = $("#frequency").val().trim();
+
+        //clear input fields after submit
+
+        $("#name").val("");
+        $("#destination").val("");
+        $("#firstTrain").val("");
+        $("#frequency").val("");
+
+        //push data rather than set in order to add onto previous data
+
+        dataRef.ref().push({
+            name: name,
+            destination: destination,
+            time: firstTrain,
+            frequency: frequency
+        });
+    });
 
 
-// Initialize Firebase
-var config = {
-    apiKey: "AIzaSyCcC4KQRs6BdV8j-a60zClyPeklA-ncm3w",
-    authDomain: "trainscheduler-cbc97.firebaseapp.com",
-    databaseURL: "https://trainscheduler-cbc97.firebaseio.com",
-    storageBucket: "trainscheduler-cbc97.appspot.com",
-    messagingSenderId: "975921946148"
-};
-firebase.initializeApp(config);
+    //create firebase "watcher"
 
-//create a variable to reference the database
+    dataRef.ref().on("child_added", function(childSnapshot) {
+        console.log(childSnapshot.val());
 
-var database = firebase.database();
 
-//on button click, store data
+        //create new variables for clean build from childSnapshot of data from firebase
+        
+        var name = childSnapshot.val().name;
+        var destination = childSnapshot.val().destination;
+        var frequency = childSnapshot.val().frequency;
+        var time = childSnapshot.val().time;
 
-$("#submit-btn").on("click", function(){
-	//don't refresh the page
-	event.preventDefault();
+        //code in math to find the next train time and minutes until next arrival based off of frequency value and first train time value.
 
-	//code in logic for storing and retrieving the most recent information.
+        //convert first train time back a year to make sure it is set before current time before pushing to firebase.
 
-	var name = $("#name").val().trim();
-	var destination = $("#destination").val().trim();
-	var time = $("#time").val().trim();
-	var frequency = $("#frequency").val().trim();
+        var firstTrainConverted = moment(time, "hh:mm").subtract(1, "years");
+        console.log(firstTrainConverted);
 
-	database.ref().push({
-		name: name,
-		destination: destination,
-		time: time,
-		frequency: frequency
-	});
+        //set a variable equal to the current time from moment.js
+
+        var currentTime = moment();
+        console.log("Current Time: " + moment(currentTime).format("hh:mm"));
+
+        //find the difference between the first train time and the current time
+
+        var timeDiff = moment().diff(moment(firstTrainConverted), "minutes");
+        console.log("Difference In Time: " + timeDiff);
+
+        //find the time apart by finding the remainder of the time difference and the frequency - use modal to get whole remainder number
+
+        var timeRemainder = timeDiff % frequency;
+        console.log(timeRemainder);
+
+        //find the minutes until the next train
+
+        var nextTrainMin = frequency - timeRemainder;
+        console.log("Minutes Till Train: " + nextTrainMin);
+
+        //find the time of the next train arrival
+
+        var nextTrainAdd = moment().add(nextTrainMin, "minutes");
+        var nextTrainArr = moment(nextTrainAdd).format("hh:mm");
+        console.log("Arrival Time: " + nextTrainArr);
+
+
+        $("#schedule").prepend("<tr><td>" + name + "</td><td>" + destination + "</td><td>" + frequency + "</td><td>" + nextTrainArr + "</td><td>" + nextTrainMin + "</td></tr>");
+
+
+    }, function(err) {
+        console.log(err);
+    });
+
+
 });
-
-
-//create firebase "watcher"
-
-database.ref().on("value", function(snapshot){
-	console.log(snapshot.val());
-
-	var name = snapshot.val().name;
-	var destination = snapshot.val().destination;
-	var time = snapshot.val().time;
-	var frequency = snapshot.val().frequency;
-
-	$("#schedule").prepend("<tr><td>" + name + "</td><td>" + destination + "</td><td>" + time + "</td><td>" + frequency + "</td></tr>");
-
-
-}, function(err) {
-	console.log(err);
-});
-
-//
-});
-
-
-
