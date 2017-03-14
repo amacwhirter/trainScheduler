@@ -52,11 +52,13 @@ $(document).ready(function() {
 
 
         //create new variables for clean build from childSnapshot of data from firebase
-        
+
         var name = childSnapshot.val().name;
         var destination = childSnapshot.val().destination;
         var frequency = childSnapshot.val().frequency;
         var time = childSnapshot.val().time;
+        var key = childSnapshot.key;
+        var remove = "<button class='glyphicon glyphicon-trash' value=key></button>"
 
         //code in math to find the next train time and minutes until next arrival based off of frequency value and first train time value.
 
@@ -69,6 +71,10 @@ $(document).ready(function() {
 
         var currentTime = moment();
         console.log("Current Time: " + moment(currentTime).format("hh:mm"));
+
+        //post current time to jumbotron for reference
+
+        $("#currentTime").html("Current Time: " + moment(currentTime).format("hh:mm"));
 
         //find the difference between the first train time and the current time
 
@@ -91,13 +97,18 @@ $(document).ready(function() {
         var nextTrainArr = moment(nextTrainAdd).format("hh:mm");
         console.log("Arrival Time: " + nextTrainArr);
 
+        //prepend all information for train data submitted by user
 
-        $("#schedule").prepend("<tr><td>" + name + "</td><td>" + destination + "</td><td>" + frequency + "</td><td>" + nextTrainArr + "</td><td>" + nextTrainMin + "</td></tr>");
+        $("#schedule").prepend("<tr><td>" + name + "</td><td>" + destination + "</td><td>" + frequency + "</td><td>" + nextTrainArr + "</td><td>" + nextTrainMin + "</td><td>" + remove + "</td></tr>");
 
+        //on click command to delete key when user clicks the trash can gliphicon
+       
+        $(".glyphicon").on("click", function() {
+            $(this).remove();
+        })
 
     }, function(err) {
         console.log(err);
     });
-
 
 });
