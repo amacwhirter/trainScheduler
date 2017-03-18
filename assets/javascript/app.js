@@ -58,7 +58,8 @@ $(document).ready(function() {
         var frequency = childSnapshot.val().frequency;
         var time = childSnapshot.val().time;
         var key = childSnapshot.key;
-        var remove = "<button class='glyphicon glyphicon-trash' value=key></button>"
+        var remove = "<button class='glyphicon glyphicon-trash' id=" + key + "></button>"
+
 
         //code in math to find the next train time and minutes until next arrival based off of frequency value and first train time value.
 
@@ -101,14 +102,22 @@ $(document).ready(function() {
 
         $("#schedule").prepend("<tr><td>" + name + "</td><td>" + destination + "</td><td>" + frequency + "</td><td>" + nextTrainArr + "</td><td>" + nextTrainMin + "</td><td>" + remove + "</td></tr>");
 
-        //on click command to delete key when user clicks the trash can gliphicon
-       
-        $(".glyphicon").on("click", function() {
-            $(this).remove();
-        })
 
     }, function(err) {
         console.log(err);
     });
+
+               //on click command to delete key when user clicks the trash can gliphicon
+
+    $(document).on("click", ".glyphicon-trash", deleteTrain);
+
+    function deleteTrain() {
+        var deleteKey = $(this).attr("id");
+        //console.log($(this).attr("id"));
+        dataRef.ref().child(deleteKey).remove();
+
+        location.reload();
+
+    }
 
 });
